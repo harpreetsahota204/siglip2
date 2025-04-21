@@ -3,6 +3,7 @@ import os
 from packaging.version import Version
 import warnings
 import math
+from PIL import Image
 
 import fiftyone.core.models as fom
 import fiftyone.utils.torch as fout
@@ -10,7 +11,9 @@ import fiftyone.utils.torch as fout
 import torch
 import torch.nn.functional as F
 from transformers import AutoProcessor, AutoModel
-from PIL import Image
+from transformers.utils.import_utils import is_flash_attn_2_available
+
+
 
 
 logger = logging.getLogger(__name__)
@@ -110,10 +113,16 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         model_path = config.model_path
     
         # Initialize processor and model
-        self.processor = AutoProcessor.from_pretrained(model_path)
+        self.processor = AutoProcessor.from_pretrained(
+            model_path,
+            use_fast=True
+            )
+        
         self.model = AutoModel.from_pretrained(
             model_path,
-            device_map=self.device)
+            attn_implementation="flash_attention_2" if is_flash_attn_2_available() else None,
+            device_map=self.device
+            )
 
         # Set model to evaluation mode (disables dropout, etc.)
         self.model.eval()
@@ -153,6 +162,7 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         text_inputs = self.processor.tokenizer(
             prompts, 
             padding="max_length", 
+            max_length=64,
             return_tensors="pt"
         ).to(self.device)
         
@@ -204,7 +214,11 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         """
 
         # Process images
-        image_inputs = self.processor(images=[imgs], return_tensors="pt").to(self.device)
+        image_inputs = self.processor(
+            images=[imgs], 
+            padding="max_length", 
+            max_length=64,
+            return_tensors="pt").to(self.device)
         
         # Get image features
         with torch.no_grad():
