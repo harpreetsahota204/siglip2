@@ -170,11 +170,12 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         with torch.no_grad():
             text_features = self.model.get_text_features(**text_inputs)
         
-        # Normalize features
-        normalized = text_features / text_features.norm(dim=1, keepdim=True)
+        # # Normalize features
+        # normalized = text_features / text_features.norm(dim=1, keepdim=True)
         
-        # Return as CPU numpy array for FiftyOne compatibility
-        return normalized.detach().cpu().numpy()
+        # # Return as CPU numpy array for FiftyOne compatibility
+        # return normalized.detach().cpu().numpy()
+        return text_features
 
     def embed_prompt(self, prompt):
         """Embed a single text prompt.
@@ -225,13 +226,14 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
             image_features = self.model.get_image_features(**image_inputs)
         
         # Normalize features
-        normalized = image_features / image_features.norm(dim=1, keepdim=True)
+        # normalized = image_features / image_features.norm(dim=1, keepdim=True)
         
         # Cache the embeddings for get_embeddings() method
-        self._last_computed_embeddings = normalized
+        self._last_computed_embeddings = image_features
         
         # Return as CPU numpy array for FiftyOne compatibility
-        return normalized.detach().cpu().numpy()
+        # return normalized.detach().cpu().numpy()
+        return image_features
     
     def embed(self, img):
         """Embed a single image.
@@ -324,21 +326,25 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         Returns:
             numpy array: Probability distribution over classes
         """
+        if self._preprocess:
+            imgs = [self._transforms(img) for img in imgs]
+
+        if isinstance(imgs, (list, tuple)):
+            imgs = torch.stack(imgs)
+
         height, width = imgs.size()[-2:]
         frame_size = (width, height)
-        # Get image embeddings
-        image_embeddings = self.embed_images(imgs)
-        
-        # Get text embeddings for classes
+
+        if self._using_gpu:
+            imgs = imgs.cuda()
+
         text_features = self._get_text_features()
-        
-        # Calculate similarity between images and text
-        output, _ = self._get_class_logits(text_features, image_embeddings)
-        
+        image_features = self._model.encode_image(imgs)
+        output, _ = self._get_class_logits(text_features, image_features)
+
         if self.has_logits:
             self._output_processor.store_logits = self.store_logits
 
         return self._output_processor(
-            output, 
-            frame_size
+            output, frame_size, confidence_thresh=self.config.confidence_thresh
         )
