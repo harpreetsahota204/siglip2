@@ -293,28 +293,23 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         return self._last_computed_embeddings.detach().cpu().numpy()
 
     def _get_class_logits(self, text_features, image_features):
-        """Calculate similarity scores between text and image features.
-        
-        For normalized vectors, the dot product equals cosine similarity,
-        which measures how similar the content of images and text are.
+        """Calculate scaled similarity scores between text and image features.
         
         Args:
-            text_features: Text embeddings (normalized)
-            image_features: Image embeddings (normalized)
+            text_features: Text embeddings (already normalized)
+            image_features: Image embeddings (already normalized)
             
         Returns:
-            tuple: (logits_per_image, logits_per_text) similarity matrices
+            tuple: (logits_per_image, logits_per_text) scaled similarity matrices
         """
-        # Use torch.no_grad() to prevent gradient computation
         with torch.no_grad():
-            # Compute dot product similarity between normalized vectors
-            # This is equivalent to cosine similarity
-            logits_per_image = torch.mm(image_features, text_features.T)
+            # Get the logit scale from the model
+            logit_scale = self.model.logit_scale.exp()
             
-            # Transpose the similarity matrix to get text-to-image similarities
+            # Compute scaled dot product similarity
+            logits_per_image = logit_scale * torch.mm(image_features, text_features.T)
             logits_per_text = logits_per_image.T
             
-            # Return both similarity matrices
             return logits_per_image, logits_per_text
 
     def _predict_all(self, imgs):
@@ -329,6 +324,8 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         Returns:
             numpy array: Probability distribution over classes
         """
+        height, width = imgs.size()[-2:]
+        frame_size = (width, height)
         # Get image embeddings
         image_embeddings = self.embed_images(imgs)
         
@@ -336,10 +333,12 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         text_features = self._get_text_features()
         
         # Calculate similarity between images and text
-        logits_per_image, logits_per_text = self._get_class_logits(text_features, image_embeddings)
+        output, _ = self._get_class_logits(text_features, image_embeddings)
         
-        # Convert similarities to probabilities using softmax
-        probs = F.softmax(logits_per_text, dim=-1)
-        
-        # Return as CPU numpy array
-        return probs.cpu().numpy()
+        if self.has_logits:
+            self._output_processor.store_logits = self.store_logits
+
+        return self._output_processor(
+            output, 
+            frame_size
+        )
