@@ -1,0 +1,28 @@
+{
+    "name": "",
+    "url": "",
+    "models": [
+        {
+            "base_name": "",
+            "base_filename":"",
+            "author": "",
+            "license": "",
+            "source": "",
+            "description": "",
+            "tags": [
+                "embeddings",
+                "VLM"
+            ],
+            "date_added": "",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        }
+   ]
+}
