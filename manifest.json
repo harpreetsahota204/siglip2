@@ -1,19 +1,439 @@
 {
-    "name": "",
-    "url": "",
+    "name": "siglip2",
+    "url": "https://github.com/harpreetsahota204/siglip2",
     "models": [
         {
-            "base_name": "",
-            "base_filename":"",
-            "author": "",
-            "license": "",
-            "source": "",
-            "description": "",
+            "base_name": "google/siglip2-base-patch16-224",
+            "base_filename":"siglip2-base-patch16-224",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-base-patch16-224",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
             "tags": [
+                "classification",
+                "logits",
                 "embeddings",
-                "VLM"
+                "torch",
+                "clip",
+                "zero-shot"
             ],
-            "date_added": "",
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-base-patch16-256",
+            "base_filename":"siglip2-base-patch16-256",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-base-patch16-256",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-base-patch16-384",
+            "base_filename":"siglip2-base-patch16-384",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-base-patch16-384",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-base-patch16-512",
+            "base_filename":"siglip2-base-patch16-512",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-base-patch16-512",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-large-patch16-256",
+            "base_filename":"siglip2-large-patch16-256",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-large-patch16-256",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-large-patch16-384",
+            "base_filename":"siglip2-large-patch16-384",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-large-patch16-384",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-large-patch16-512",
+            "base_filename":"siglip2-large-patch16-512",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-large-patch16-512",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-base-patch32-256",
+            "base_filename":"siglip2-base-patch32-256",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-base-patch32-256",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-giant-opt-patch16-256",
+            "base_filename":"siglip2-giant-opt-patch16-256",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-giant-opt-patch16-256",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-giant-opt-patch16-384",
+            "base_filename":"siglip2-giant-opt-patch16-384",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-giant-opt-patch16-384",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-so400m-patch14-224",
+            "base_filename":"siglip2-so400m-patch14-224",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-so400m-patch14-224",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-so400m-patch14-384",
+            "base_filename":"siglip2-so400m-patch14-384",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-so400m-patch14-384",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-so400m-patch16-256",
+            "base_filename":"siglip2-so400m-patch16-256",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-so400m-patch16-256",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-so400m-patch16-384",
+            "base_filename":"siglip2-so400m-patch16-384",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-so400m-patch16-384",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-so400m-patch16-512",
+            "base_filename":"siglip2-so400m-patch16-512",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-so400m-patch16-512",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-base-patch16-naflex",
+            "base_filename":"siglip2-base-patch16-naflex",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-base-patch16-naflex",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
+            "requirements": {
+                "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
+                "cpu": {
+                    "support": true
+                },
+                "gpu": {
+                    "support": true
+                }
+            }
+        },
+        {
+            "base_name": "google/siglip2-so400m-patch16-naflex",
+            "base_filename":"siglip2-so400m-patch16-naflex",
+            "author": "Google",
+            "license": "Apache-2.0",
+            "source": "https://huggingface.co/google/siglip2-so400m-patch16-naflex",
+            "description": "SigLIP 2 extends the pretraining objective of SigLIP with prior, independently developed techniques into a unified recipe, for improved semantic understanding, localization, and dense features.",
+            "tags": [
+                "classification",
+                "logits",
+                "embeddings",
+                "torch",
+                "clip",
+                "zero-shot"
+            ],
+            "date_added": "2022-04-21",
             "requirements": {
                 "packages": ["huggingface-hub","transformers", "torch", "torchvision",  "accelerate"],
                 "cpu": {
