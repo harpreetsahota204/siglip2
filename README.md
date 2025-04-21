@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Vision-Document Retrieval (VDR) Model for FiftyOne
 
 This repository provides a FiftyOne integration for the Vision-Document Retrieval (VDR) model, enabling powerful text-to-image search capabilities within the FiftyOne ecosystem.
@@ -167,3 +168,7 @@ This implementation is provided under the terms of the [base model's license (Ll
   note = {Accessed: 2025-04-15}
 }
 ```
+=======
+# siglip2
+A FiftyOne Remotely Sourced Zoo Model integration for Google's SigLIP2 model enabling natural language search across images in your FiftyOne Dataset!
+>>>>>>> 524840124106cb771bd6173f6b09cd5b5f19f695
