@@ -1,53 +1,59 @@
-<<<<<<< HEAD
-# Vision-Document Retrieval (VDR) Model for FiftyOne
+# SigLIP2 for FiftyOne
 
-This repository provides a FiftyOne integration for the Vision-Document Retrieval (VDR) model, enabling powerful text-to-image search capabilities within the FiftyOne ecosystem.
+This repository provides a FiftyOne integration for Google's SigLIP2 embedding models, enabling powerful text-image similarity search capabilities in your FiftyOne datasets.
 
 ## Overview
 
-The [Vision-Document Retrieval (VDR) model](https://huggingface.co/llamaindex/vdr-2b-v1) is a multimodal embedding model created by LlamaIndex and based on the Qwen2VL architecture. It transforms both images and text into a shared vector space, allowing for:
+SigLIP2 models create a shared embedding space for both images and text, allowing for:
+- Image-to-text similarity search
+- Text-to-image similarity search 
+- Zero-shot image classification
+- Multimodal embeddings
 
-- Text-to-image search: Find images that match text descriptions
-- Image-to-image similarity: Find visually similar images
-
-**Specialized for Document Images**: This model excels at working with document images of all kinds, including:
-- Scanned text documents
-- Screenshots
-- Charts and graphs
-- Slides and presentations
-- Forms and tables
-- Technical diagrams
-- Any images containing text
-
-This implementation provides a simple way to use VDR within FiftyOne for semantic search and similarity-based exploration of your document image datasets.
-
-## Features
-
-- **Text-to-Image Similarity**: Search your images using natural language queries
-- **Customizable Embeddings**: Adjust embedding dimension to balance accuracy and performance
-- **Seamless FiftyOne Integration**: Works with FiftyOne's Brain tools for dataset exploration
+This integration makes it easy to leverage these capabilities directly within your FiftyOne workflows.
 
 ## Installation
 
-1. Register the model source repository with FiftyOne:
+Register and download the model from this repository:
 
 ```python
 import fiftyone.zoo as foz
 
-foz.register_zoo_model_source(
-    "https://github.com/harpreetsahota204/visual_document_retrieval", 
-    overwrite=True
-)
-```
+# Register this custom model source
+foz.register_zoo_model_source("https://github.com/harpreetsahota204/siglip2")
 
-2. Download the model:
-
-```python
+# Download your preferred SigLIP2 variant
 foz.download_zoo_model(
-    "https://github.com/harpreetsahota204/visual_document_retrieval",
-    model_name="llamaindex/vdr-2b-v1"
+    "https://github.com/harpreetsahota204/siglip2",
+    model_name="google/siglip2-so400m-patch16-naflex",
 )
 ```
+
+## Model Variants
+
+SigLIP2 comes in multiple variants with different tradeoffs
+
+| Model Type | Parameters | Image-Text Retrieval Performance | NaFlex Variant |
+|------------|------------|---------------------------------|----------------|
+| **Base (B)**   | **86M**      | Shows significant improvements, particularly due to distillation techniques. Smaller models in the family. | Available [Table 7] |
+| **Large (L)**  | **303M**     | Exhibits strong retrieval performance, consistently outperforming SigLIP and other baselines [analysis based on Table 1]. | Available [Table 7] |
+| **So400m**     | **400M**       | Generally achieves **higher retrieval performance** compared to Base and Large models [analysis based on Table 1]. Also performs well as a vision encoder for VLMs. | Available [1, Figure 3, Table 7] |
+| **Giant (g)**  | **1B**      | Achieves the **highest reported retrieval performance** among the SigLIP 2 variants [analysis based on Table 1]. | Not explicitly discussed for NaFlex in the excerpts, but other sizes have it. |
+
+**Key takeaways:**
+
+*   SigLIP 2 models come in four sizes, with increasing parameter counts generally leading to improved performance.
+*   For image-text retrieval, **larger models like So400m and Giant tend to perform better** [analysis based on Table 1].
+*   **NaFlex variants**, which support multiple resolutions and preserve native aspect ratios, are available for at least the Base, Large, and So400m sizes [1, 6, 9, Figure 3, Table 7]. These can be particularly beneficial for aspect-sensitive tasks like document understanding.
+*   All SigLIP 2 models are **multilingual vision-language encoders**.
+*   The So400m models offer a strong balance of performance and computational efficiency compared to the largest models [our previous discussion].
+
+### Choosing the Right Variant
+
+- **For general photos/natural images**: Standard fixed-resolution models (e.g., `siglip2-so400m-patch16-384`)
+- **For document-like, OCR, or screen images**: NaFlex variants (e.g., `siglip2-so400m-patch16-naflex`) 
+- **For speed-critical applications**: Base models (e.g., `siglip2-base-patch16-256`)
+- **For highest accuracy**: Giant models (e.g., `siglip2-g-patch16-384`)
 
 ## Usage
 
@@ -56,119 +62,75 @@ foz.download_zoo_model(
 ```python
 import fiftyone.zoo as foz
 
-model = foz.load_zoo_model("llamaindex/vdr-2b-v1")
+model = foz.load_zoo_model(
+    "google/siglip2-so400m-patch16-naflex"
+)
 ```
 
-### Computing Embeddings and Building a Similarity Index
+### Computing Image Embeddings
+
+```python
+dataset.compute_embeddings(
+    model=model,
+    embeddings_field="siglip2_embeddings",
+)
+```
+
+### Visualizing Embeddings
 
 ```python
 import fiftyone.brain as fob
 
-# Compute embeddings and build a similarity index
+results = fob.compute_visualization(
+    dataset,
+    embeddings="siglip2_embeddings",
+    method="umap",
+    brain_key="siglip2_viz",
+    num_dims=2,
+)
+
+# View in the App
+session = fo.launch_app(dataset)
+```
+
+### Text-Image Similarity Search
+
+```python
+import fiftyone.brain as fob
+
+# Build a similarity index
 text_img_index = fob.compute_similarity(
-    dataset,                        # Your FiftyOne dataset
-    model="llamaindex/vdr-2b-v1",   # Model name, you can also use the multilingual model, vdr-2b-multi-v1
-    brain_key="vdr_img",            # Key to store the results, can be whatever you want
+    dataset,
+    model=model,
+    brain_key="siglip2_similarity",
 )
+
+# Search by text query
+similar_images = text_img_index.sort_by_similarity("a dog playing in the snow")
+
+# View results
+session = fo.launch_app(similar_images)
 ```
 
-### Finding Similar Images to a Text Query
+## Performance Notes
 
-```python
-# Sort dataset by similarity to a text query
-similar_samples = text_img_index.sort_by_similarity("your awesome text query!")
-
-# Example document-specific queries:
-# similar_samples = text_img_index.sort_by_similarity("invoices from 2023")
-# similar_samples = text_img_index.sort_by_similarity("bar charts showing declining trends")
-# similar_samples = text_img_index.sort_by_similarity("error messages containing API failures")
-
-```
-
-### Advanced Usage
-
-#### Custom Embedding Dimension
-
-```python
-model = foz.load_zoo_model(
-    "llamaindex/vdr-2b-v1", 
-    embedding_dim=1024  # Reduce dimension for faster processing
-)
-```
-
-#### Custom Prompts
-
-```python
-model = foz.load_zoo_model(
-    "llamaindex/vdr-2b-v1",
-    document_prompt="<|im_start|>system\nDescribe this image in detail.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>What is shown?<|im_end|>\n<|endoftext|>",
-    query_prompt="<|im_start|>system\nFind images related to the query.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Query: %s<|im_end|>\n<|endoftext|>"
-)
-```
-
-## Technical Details
-
-- **Base Model**: Qwen2VL (LlamaIndex/VDR-2B) multimodal model
-- **Embedding Dimension**: 2048 by default, can be reduced
-- **Image Processing**: Automatically resizes images to match model requirements
-- **Platform Requirements**: CUDA-capable GPU recommended for optimal performance
-- **Memory Requirements**: Approximately 5GB GPU memory
-
-# How It Works
-
-The model computes embeddings by:
-
-1. **For Images**:
-   - Resizing the image to fit model requirements (multiples of 28px)
-   - Passing the image through the vision encoder
-   - Extracting and normalizing the embedding vector
-
-2. **For Text**:
-   - Formatting the text with a special prompt template
-   - Using a dummy image (required by the model architecture)
-   - Extracting and normalizing the embedding vector
-
-3. **Similarity Calculation**:
-   - Computing cosine similarity between normalized embeddings
-   - Ranking results based on similarity scores
-
-# Ideal Use Cases and Limitations
-
-### Best For
-- **Document Images**: Excels with any kind of document containing text
-- **Screenshots**: Great for searching UI screenshots, web pages, or application interfaces
-- **Charts and Diagrams**: Can understand and retrieve based on graphical data representations
-- **Mixed Text/Visual Content**: Works well with slides, posters, or infographics
-
-### Limitations
-- While it can process natural photos, it's specialized for text-containing images
-- Performance varies with more abstract or specialized concepts
-- Processing large images or large batches requires significant GPU memory
-- The dummy image requirement for text encoding is a limitation of the underlying model architecture
+- Text-image similarity performance depends on the model variant used
+- SigLIP2 models excel at multilingual retrieval without specific training
+- Higher resolutions generally improve retrieval accuracy but increase processing time
+- NaFlex variants work particularly well for document images where aspect ratio matters
 
 ## License
 
-This implementation is provided under the terms of the [base model's license (LlamaIndex/VDR-2B-V1), which is Apache 2.0](https://choosealicense.com/licenses/apache-2.0/).
+This model is released with Apache-2.0 license. Refer to the [official GitHub repository](https://github.com/google-research/big_vision/blob/main/big_vision/configs/proj/image_text/README_siglip2.md) for licensing details.
 
-## Acknowledgements
+## Citation
 
-- This implementation builds on the Qwen2VL model architecture
-- Integrated with FiftyOne for dataset exploration and management
-- Thanks to LlamaIndex for the VDR-2B model release
-
-# Citation
-
-```bibtext
-@misc{vdr-2b-v1,
-  author = {LlamaIndex},
-  title = {VDR-2B-v1: Vision-Document Retrieval Model},
-  year = {2025},
-  publisher = {Hugging Face},
-  howpublished = {\url{https://huggingface.co/llamaindex/vdr-2b-v1}},
-  note = {Accessed: 2025-04-15}
+```bibtex
+@article{tschannen2025siglip,
+  title={SigLIP 2: Multilingual Vision-Language Encoders with Improved Semantic Understanding, Localization, and Dense Features},
+  author={Tschannen, Michael and Gritsenko, Alexey and Wang, Xiao and Naeem, Muhammad Ferjad and Alabdulmohsin, Ibrahim and Parthasarathy, Nikhil and Evans, Talfan and Beyer, Lucas and Xia, Ye and Mustafa, Basil and H\'enaff, Olivier and Harmsen, Jeremiah and Steiner, Andreas and Zhai, Xiaohua},
+  year={2025},
+  journal={arXiv preprint arXiv:2502.14786}
+}
 }
 ```
-=======
-# siglip2
-A FiftyOne Remotely Sourced Zoo Model integration for Google's SigLIP2 model enabling natural language search across images in your FiftyOne Dataset!
->>>>>>> 524840124106cb771bd6173f6b09cd5b5f19f695
