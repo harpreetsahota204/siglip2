@@ -111,6 +111,22 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
 
         # Load the model and processor from HuggingFace
         model_path = config.model_path
+
+        model_kwargs = {
+            "device_map":self.device,
+            }
+
+        # Set optimizations based on device capabilities
+        if self.device == "cuda" and torch.cuda.is_available():
+            capability = torch.cuda.get_device_capability(self._device)
+            
+            # Check if Flash Attention 2 is available
+            if is_flash_attn_2_available():
+                model_kwargs["attn_implementation"] = "flash_attention_2"
+            
+            # Check if device supports bfloat16 (Ampere or newer GPUs have capability >= 8.0)
+            if capability[0] >= 8:
+                model_kwargs["torch_dtype"] = torch.bfloat16
     
         # Initialize processor and model
         self.processor = AutoProcessor.from_pretrained(
@@ -120,8 +136,7 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         
         self.model = AutoModel.from_pretrained(
             model_path,
-            attn_implementation="flash_attention_2" if is_flash_attn_2_available() else None,
-            device_map=self.device
+            **model_kwargs
             )
 
         # Set model to evaluation mode (disables dropout, etc.)
