@@ -5,6 +5,8 @@ import warnings
 import math
 from PIL import Image
 
+import numpy as np
+
 import fiftyone.core.models as fom
 import fiftyone.utils.torch as fout
 
@@ -12,9 +14,6 @@ import torch
 import torch.nn.functional as F
 from transformers import AutoProcessor, AutoModel
 from transformers.utils.import_utils import is_flash_attn_2_available
-
-
-
 
 logger = logging.getLogger(__name__)
 
@@ -176,8 +175,6 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         # Process text inputs
         text_inputs = self.processor.tokenizer(
             prompts, 
-            padding="max_length", 
-            max_length=64,
             return_tensors="pt"
         ).to(self.device)
         
@@ -230,9 +227,7 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
 
         # Process images
         image_inputs = self.processor(
-            images=[imgs], 
-            padding="max_length", 
-            max_length=64,
+            images=imgs, 
             return_tensors="pt").to(self.device)
         
         # Get image features
@@ -311,19 +306,33 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         """Calculate scaled similarity scores between text and image features.
         
         Args:
-            text_features: Text embeddings (already normalized)
-            image_features: Image embeddings (already normalized)
+            text_features: Text embeddings (numpy array or tensor)
+            image_features: Image embeddings (numpy array or tensor)
             
         Returns:
             tuple: (logits_per_image, logits_per_text) scaled similarity matrices
         """
         with torch.no_grad():
+            # Convert numpy arrays to torch tensors and move to device
+            if isinstance(text_features, np.ndarray):
+                text_features = torch.from_numpy(text_features).to(self.device)
+            if isinstance(image_features, np.ndarray):
+                image_features = torch.from_numpy(image_features).to(self.device)
+            
+            # Ensure correct dtype
+            text_features = text_features.float()
+            image_features = image_features.float()
+            
+            # Normalize features (following CLIP approach)
+            image_features = image_features / image_features.norm(dim=1, keepdim=True)
+            text_features = text_features / text_features.norm(dim=1, keepdim=True)
+            
             # Get the logit scale from the model
             logit_scale = self.model.logit_scale.exp()
             
-            # Compute scaled dot product similarity
-            logits_per_image = logit_scale * torch.mm(image_features, text_features.T)
-            logits_per_text = logits_per_image.T
+            # Compute scaled dot product similarity (using @ like CLIP)
+            logits_per_image = logit_scale * image_features @ text_features.t()
+            logits_per_text = logits_per_image.t()
             
             return logits_per_image, logits_per_text
 
@@ -337,16 +346,37 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
             imgs: List of images to classify
             
         Returns:
-            numpy array: Probability distribution over classes
+            numpy array: Raw logits (or processed by output_processor if available)
         """
-        # Get image embeddings
+        # Get image embeddings (returns numpy array)
         image_embeddings = self.embed_images(imgs)
         
-        # Get text embeddings for classes
+        # Get text embeddings for classes (returns numpy array)
         text_features = self._get_text_features()
         
-        # Calculate similarity between images and text
+        # Calculate similarity between images and text (returns torch tensors)
         logits_per_image, logits_per_text = self._get_class_logits(text_features, image_embeddings)
         
-        # Return as CPU numpy array
-        return logits_per_image.cpu().numpy()
+        # If you have an output processor (like CLIP), use it
+        if hasattr(self, '_output_processor') and self._output_processor is not None:
+            # Get frame size for output processor
+            if isinstance(imgs[0], torch.Tensor):
+                height, width = imgs[0].size()[-2:]
+            elif hasattr(imgs[0], 'size'):  # PIL Image
+                width, height = imgs[0].size
+            else:
+                height, width = imgs[0].shape[:2]  # numpy array
+            
+            frame_size = (width, height)
+            
+            if self.has_logits:
+                self._output_processor.store_logits = self.store_logits
+            
+            return self._output_processor(
+                logits_per_image, 
+                frame_size, 
+                confidence_thresh=self.config.confidence_thresh
+            )
+        
+        # Return raw logits as CPU numpy array
+        return logits_per_image.detach().cpu().numpy()
