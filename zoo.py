@@ -39,6 +39,15 @@ class SigLIP2Config(fout.TorchImageModelConfig):
         Args:
             d: A dictionary containing the configuration parameters
         """
+        # Processor handles preprocessing, so use raw inputs
+        if "raw_inputs" not in d:
+            d["raw_inputs"] = True
+        
+        # Only set up output processor if classes provided (for classification)
+        if "classes" in d and d["classes"] is not None and len(d["classes"]) > 0:
+            if "output_processor_cls" not in d:
+                d["output_processor_cls"] = "fiftyone.utils.torch.ClassifierOutputProcessor"
+        
         super().__init__(d)
         
         # Path to model weights or HuggingFace model ID
@@ -94,6 +103,35 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
             bool: Always True for this model as text embedding is supported
         """
         return True
+    
+    @property
+    def classes(self):
+        """The list of class labels for the model."""
+        return self._classes
+
+    @classes.setter
+    def classes(self, value):
+        """Set new classes and invalidate cached text features."""
+        self._classes = value
+        self._text_features = None  # Invalidate cache
+        
+        # Rebuild output processor if classes are provided
+        if value is not None and len(value) > 0:
+            from fiftyone.utils.torch import ClassifierOutputProcessor
+            self._output_processor = ClassifierOutputProcessor(classes=value)
+        else:
+            self._output_processor = None
+    
+    @property
+    def text_prompt(self):
+        """The text prompt prefix for classification."""
+        return self.config.text_prompt
+
+    @text_prompt.setter  
+    def text_prompt(self, value):
+        """Set new text prompt and invalidate cached text features."""
+        self.config.text_prompt = value
+        self._text_features = None  # Invalidate cache
 
     def _load_model(self, config):
         """Load the model and processor from disk or HuggingFace.
@@ -144,18 +182,21 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         return self.model
 
     def _get_text_features(self):
-        """Get or compute text features for the model's classification.
+        """Get or compute text features for classification.
         
-        This method caches the result for efficiency in repeated calls.
+        Creates embeddings for each class by combining text_prompt with class names.
         
         Returns:
-            numpy array: Text features as a numpy array for classification
+            numpy array: Text embeddings with shape (num_classes, embedding_dim)
         """
         # Check if text features are already computed and cached
         if self._text_features is None:
-            prompt = self.config.text_prompt
+            # Create prompts for each class
+            prompts = [
+                "%s %s" % (self.config.text_prompt, c) for c in self.classes
+            ]
             # Compute and cache the text features
-            self._text_features = self._embed_prompts([prompt])
+            self._text_features = self._embed_prompts(prompts)
         
         # Return the cached features
         return self._text_features
