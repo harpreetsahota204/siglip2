@@ -1,8 +1,5 @@
 import logging
 import os
-from packaging.version import Version
-import warnings
-import math
 from PIL import Image
 
 import numpy as np
@@ -11,7 +8,6 @@ import fiftyone.core.models as fom
 import fiftyone.utils.torch as fout
 
 import torch
-import torch.nn.functional as F
 from transformers import AutoProcessor, AutoModel
 from transformers.utils.import_utils import is_flash_attn_2_available
 
@@ -23,7 +19,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 class SigLIP2Config(fout.TorchImageModelConfig):
     """
     This config class extends TorchImageModelConfig to provide specific parameters
-    needed for the used for text-image similarity search.
+    needed for text-image similarity search.
     
     Args:
         model_path (str): Path to the model's weights on disk or HuggingFace model ID.
@@ -212,9 +208,11 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         Returns:
             numpy array: Unnormalized embeddings for the prompts
         """
-        # Process text inputs
-        text_inputs = self.processor.tokenizer(
-            prompts, 
+        # Process text inputs using processor (not tokenizer directly)
+        # This ensures consistent preprocessing with native usage
+        text_inputs = self.processor(
+            text=prompts,
+            padding="max_length",
             return_tensors="pt"
         ).to(self.device)
         
@@ -294,13 +292,7 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
             numpy array: Embedding for the image
         """
         # Convert single image to a list for batch processing
-        if isinstance(img, torch.Tensor):
-            imgs = [img]
-        else:
-            imgs = [img]
-        
-        # Embed the single image using the batch method
-        embeddings = self.embed_images(imgs)
+        embeddings = self.embed_images([img])
         # Return the first (and only) embedding
         return embeddings[0]
 
