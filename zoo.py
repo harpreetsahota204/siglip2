@@ -204,14 +204,13 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
     def _embed_prompts(self, prompts):
         """Embed text prompts for similarity search.
         
-        Follows the approach used in the native implementation of the model,
-        using a dummy image as required by the multimodal architecture.
+        SigLIP2 uses unnormalized embeddings with sigmoid loss, unlike CLIP.
         
         Args:
             prompts: List of text prompts to embed
             
         Returns:
-            numpy array: Embeddings for the prompts as numpy arrays
+            numpy array: Unnormalized embeddings for the prompts
         """
         # Process text inputs
         text_inputs = self.processor.tokenizer(
@@ -223,11 +222,9 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         with torch.no_grad():
             text_features = self.model.get_text_features(**text_inputs)
         
-        # Normalize features
-        normalized = text_features / text_features.norm(dim=1, keepdim=True)
-        
+        # NO NORMALIZATION for SigLIP2 - embeddings are designed to work unnormalized
         # Return as CPU numpy array for FiftyOne compatibility
-        return normalized.detach().cpu().numpy()
+        return text_features.detach().cpu().numpy()
 
     def embed_prompt(self, prompt):
         """Embed a single text prompt.
@@ -259,11 +256,13 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
     def embed_images(self, imgs):
         """Embed a batch of images.
         
+        SigLIP2 uses unnormalized embeddings with sigmoid loss, unlike CLIP.
+        
         Args:
             imgs: List of images to embed (PIL images or PyTorch tensors)
             
         Returns:
-            numpy array: Embeddings for the images
+            numpy array: Unnormalized embeddings for the images
         """
 
         # Process images
@@ -275,14 +274,13 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         with torch.no_grad():
             image_features = self.model.get_image_features(**image_inputs)
         
-        # Normalize features
-        normalized = image_features / image_features.norm(dim=1, keepdim=True)
+        # NO NORMALIZATION for SigLIP2 - embeddings are designed to work unnormalized
         
         # Cache the embeddings for get_embeddings() method
-        self._last_computed_embeddings = normalized
+        self._last_computed_embeddings = image_features
         
         # Return as CPU numpy array for FiftyOne compatibility
-        return normalized.detach().cpu().numpy()
+        return image_features.detach().cpu().numpy()
     
     def embed(self, img):
         """Embed a single image.
@@ -344,7 +342,10 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         return self._last_computed_embeddings.detach().cpu().numpy()
 
     def _get_class_logits(self, text_features, image_features):
-        """Calculate scaled similarity scores between text and image features.
+        """Calculate similarity scores using SigLIP2's native approach.
+        
+        SigLIP2 uses unnormalized embeddings with sigmoid loss, not normalized 
+        embeddings with softmax like CLIP.
         
         Args:
             text_features: Text embeddings (numpy array or tensor)
@@ -364,15 +365,13 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
             text_features = text_features.float()
             image_features = image_features.float()
             
-            # Normalize features (following CLIP approach)
-            image_features = image_features / image_features.norm(dim=1, keepdim=True)
-            text_features = text_features / text_features.norm(dim=1, keepdim=True)
+            # NO NORMALIZATION - SigLIP2 embeddings are used as-is
             
             # Get the logit scale from the model
             logit_scale = self.model.logit_scale.exp()
             
-            # Compute scaled dot product similarity (using @ like CLIP)
-            logits_per_image = logit_scale * image_features @ text_features.t()
+            # Compute scaled dot product similarity
+            logits_per_image = logit_scale * (image_features @ text_features.t())
             logits_per_text = logits_per_image.t()
             
             return logits_per_image, logits_per_text
