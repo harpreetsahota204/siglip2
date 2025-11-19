@@ -1,5 +1,7 @@
 # SigLIP2 for FiftyOne
 
+![image](siglip2.gif)
+
 This repository provides a FiftyOne integration for Google's SigLIP2 embedding models, enabling powerful text-image similarity search capabilities in your FiftyOne datasets.
 
 ## Overview
