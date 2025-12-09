@@ -82,6 +82,19 @@ class SigLIP2(fout.TorchImageModel, fom.PromptMixin):
         # Storage for the last computed embeddings (needed for FiftyOne API)
         self._last_computed_embeddings = None
 
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+    
+    def __exit__(self, *args):
+        """Context manager exit - clear GPU memory cache."""
+        # Clear cache based on device type (don't move model to CPU)
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            torch.mps.empty_cache()
+        return False
+
     @property
     def has_embeddings(self):
         """Whether this instance can generate embeddings.
